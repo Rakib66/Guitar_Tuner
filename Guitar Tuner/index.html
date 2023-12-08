@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Guitar Tuner</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <img src="bg.jpg" alt="Background Guitar" id="background-guitar">
+    
+    <div id="tuner">
+        <h1>Guitar Tuner</h1>
+        <div id="frequency">Frequency: </div>
+        <div id="status">Status: </div>
+
+        <button class="note-button" onclick="playNote(329.63)">Play E</button>
+        <button class="note-button" onclick="playNote(220.00)">Play A</button>
+        <button class="note-button" onclick="playNote(146.83)">Play D</button>
+        <button class="note-button" onclick="playNote(98.00)">Play G</button>
+        <button class="note-button" onclick="playNote(73.42)">Play B</button>
+        <button class="note-button" onclick="playNote(41.20)">Play e</button>
+    </div>
+
+    <script>
+        const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+        const analyser = audioContext.createAnalyser();
+        const bufferLength = analyser.frequencyBinCount;
+        const dataArray = new Uint8Array(bufferLength);
+
+        function playNote(frequency) {
+            const oscillator = audioContext.createOscillator();
+            oscillator.type = 'sine';
+            oscillator.frequency.setValueAtTime(frequency, audioContext.currentTime);
+            oscillator.connect(audioContext.destination);
+            oscillator.start();
+            oscillator.stop(audioContext.currentTime + 1); // Stop after 1 second
+        }
+
+        window.onload = function () {
+            navigator.mediaDevices.getUserMedia({ audio: true })
+                .then((stream) => {
+                    const source = audioContext.createMediaStreamSource(stream);
+                    source.connect(analyser);
+
+                    function updatePitch() {
+                        analyser.getByteFrequencyData(dataArray);
+                        const dominantFrequency = findDominantFrequency(dataArray, audioContext.sampleRate);
+                        const closestNote = findClosestNote(dominantFrequency);
+
+                        document.getElementById('frequency').innerText = `Frequency: ${dominantFrequency.toFixed(2)} Hz`;
+                        document.getElementById('status').innerText = `Status: ${closestNote}`;
+                    }
+
+                    function findDominantFrequency(dataArray, sampleRate) {
+                        const binWidth = sampleRate / bufferLength;
+                        const maxIndex = dataArray.indexOf(Math.max(...dataArray));
+                        return maxIndex * binWidth;
+                    }
+
+                    function findClosestNote(frequency) {
+                        const notes = ['E', 'A', 'D', 'G', 'B', 'e']; // Standard guitar tuning
+                        const targetFrequencies = [329.63, 220.00, 146.83, 98.00, 73.42, 41.20]; // Corresponding frequencies of standard tuning
+
+                        const closestNoteIndex = targetFrequencies.reduce((prev, curr, index) => {
+                            return Math.abs(curr - frequency) < Math.abs(targetFrequencies[prev] - frequency) ? index : prev;
+                        }, 0);
+
+                        return notes[closestNoteIndex];
+                    }
+
+                    setInterval(updatePitch, 100);
+                })
+                .catch((err) => {
+                    console.error('Error accessing microphone:', err);
+                });
+        };
+    </script>
+</body>
+</html>

@@ -1,0 +1,45 @@
+body {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 100vh;
+    margin: 0;
+    font-family: 'Arial', sans-serif;
+    background-color: #262626;
+    color: #fff;
+    overflow: hidden;
+    position: relative;
+}
+#background-guitar {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    opacity: 0.2;
+   
+} 
+#tuner {
+    text-align: center;
+    z-index: 1;
+}
+#frequency {
+    font-size: 24px;
+    margin-bottom: 10px;
+}
+#status {
+    font-size: 18px;
+}
+.note-button {
+    margin: 10px;
+    padding: 15px 20px;
+    font-size: 18px;
+    cursor: pointer;
+    background-color: #4CAF50;
+    color: #fff;
+    border: none;
+    border-radius: 5px;
+    outline: none;
+    transition: background-color 0.3s;
+}
+.note-button:hover {
+    background-color: #45a049;
+}
